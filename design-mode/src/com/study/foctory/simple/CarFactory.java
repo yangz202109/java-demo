@@ -1,7 +1,7 @@
 package com.study.foctory.simple;
 
 /**
- * @auther shkstart
+ * @author yangz
  * @create 2021-12-03-17:42
  * 工厂类
  * 静态工厂模式
@@ -10,9 +10,9 @@ package com.study.foctory.simple;
 public class CarFactory {
 
     public static Car getCar(String car){
-        if (car.equals("宝马")){
+        if ("宝马".equals(car)){
             return new Bmv();
-        }else if(car.equals("特斯拉")){
+        }else if("特斯拉".equals(car)){
             return new Tesla();
         }
          return null;
