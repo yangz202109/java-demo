@@ -6,50 +6,22 @@ package enum_demo;
  */
 public class TestEnum {
     public static void main(String[] args) {
-        /*for (Week value : Week.values()) {
-            System.out.println(value);
-        }*/
 
-        Week friday = Week.friday;
-        Week sunday = Week.sunday;
-
-        // ordinal()方法：返回枚举常量的序数，注意从0开始
-        System.out.println("sunday序号:"+sunday.ordinal());
-
-        // compareTo()方法：枚举常量间的比较
-        System.out.println(friday.compareTo(sunday));
-
-        // name()方法：获得枚举常量的名称
-        System.out.println(sunday.name());
-
-        // valueOf()方法：返回指定名称的枚举常量
-        System.out.println(Week.valueOf("monday"));
-
-        switch (friday){
-            case monday:
-                System.out.println("星期一");
-                break;
-            case tuesday:
-                System.out.println("星期二");
-                break;
-            case wednesday:
-                System.out.println("星期三");
-                break;
-            case thursday:
-                System.out.println("星期四");
-                break;
-            case friday:
-                System.out.println("星期五");
-                break;
-            case saturday:
-                System.out.println("星期六");
-                break;
-            case sunday:
-                System.out.println("星期日");
-                break;
+        //返回包括所有枚举变量的数组.
+        Role[] roles = Role.values();
+        for (Role role : roles) {
+            //System.out.println("name = " + role.name() + " ,roleName = " + role.getRoleName());
+            System.out.println(role);
         }
 
-        System.out.println(Role.ROLE_ADMIN);
+        //返回当前枚举类的name属性,如果没有,则throw new java.lang.IllegalArgumentException().
+        System.out.println( Role.valueOf("ROLE_ADMIN"));
+
+        //返回对应的name属性
+        System.out.println(Role.ROLE_TEST.toString());
+
+        //返回根据我们定义的次序，从0开始。如果在定义时调换ROLE_ADMIN的次序，返回的数字也会对应的变化
+        System.out.println(Role.ROLE_ADMIN.ordinal());
 
     }
 }

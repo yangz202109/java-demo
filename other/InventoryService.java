@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -16,6 +17,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * 业务类
  * 调用购买方法减少redis中的库存数量
  * 1.0是在单机上,之后的是分布式微服务-->一台Nginx轮询方式代理2台服务,2台微服务高并发下访问各自的购买方法
+ *
  * @author yangz
  * @createTime 2023/6/19 - 15:25
  */
@@ -23,6 +25,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class InventoryService {
     @Autowired
     private RedisTemplate<String,Object> redisTemplate;
+    @Autowired
+    private DistributeLockFactory distributeLockFactory;
 
     private Lock lock;
 
@@ -33,6 +37,7 @@ public class InventoryService {
     public String sale1() {
         lock = new ReentrantLock();
         StringBuilder retMessage = new StringBuilder();
+
         //加锁
         lock.lock();
         try {
@@ -55,7 +60,7 @@ public class InventoryService {
     }
 
     /**
-     * 2.0版 在分布式系统中各个服务同时调用消费方法,解决重复消费问题
+     * 2.0版 在分布式系统中各个服务同时调用消费方法,引入redis命令解决重复消费问题
      * 问题：递归过多容易导致StackOverflow*
      */
     public String sale2() {
@@ -98,8 +103,7 @@ public class InventoryService {
     }
 
     /**
-     * 2.1版 优化StackOverflow问题
-     * 使用自旋代替递归重试
+     * 2.1版 优化StackOverflow问题,使用自旋代替递归重试
      * 问题：当本服务抢锁成功后,没有执行到删除key可以就挂了,就会导致死锁
      */
     public String sale2_1() {
@@ -260,18 +264,51 @@ public class InventoryService {
             //改进,修改为lua脚本的redis分布式锁调用,必须保证原子性
             String luaScript = "if redis.call('get',KEYS[1])==ARGV[1] then return redis.call('del',KEYS[1]) else return 0 end";
             //DefaultRedisScript 参数1:lua脚本 参数2:返回值类型--key的集合--参数数组
-            redisTemplate.execute(new DefaultRedisScript<>(luaScript, Integer.class), Arrays.asList(key), uuidValue);
+            redisTemplate.execute(new DefaultRedisScript<>(luaScript, Integer.class), Collections.singletonList(key), uuidValue);
         }
         return retMessage.toString();
     }
 
     /**
-     * 5.0 在1.0版上使用自定义的锁
-     *
+     * 5.0 在1.0版上改成使用自定义的锁
+     * 问题：获取锁是固定写死只能获取redis的分布式锁
      */
     public String sale5() {
+        //获取自定义redis分布式锁类
         lock = new MyRedisLock(redisTemplate);
         StringBuilder retMessage = new StringBuilder();
+
+        //加锁
+        lock.lock();
+        try {
+            //1.获取库存信息
+            String result = (String) redisTemplate.opsForValue().get("inventory");
+            //2.判断库存是否足够
+            Integer inventoryNum = result == null ? 0 : Integer.parseInt(result);
+            //3.扣减库存,每次减1
+            if (inventoryNum > 0) {
+                redisTemplate.opsForValue().set("inventory", String.valueOf(--inventoryNum));
+                retMessage.append("成功卖出一商品,库存剩余: ").append(inventoryNum);
+            } else {
+                retMessage.append("该商品已经售完");
+            }
+        } finally {
+            //解锁
+            lock.unlock();
+        }
+        return retMessage.toString();
+
+    }
+
+    /**
+     * 5.0 通过工厂来获取对应实现的分布式锁
+     *  可能后期会扩展使用其他技术来实现分布式锁
+     */
+    public String sale6() {
+        //使用工厂模式来获取指定分布式锁
+        lock = distributeLockFactory.getDistributeLock(DistributeLockTypeMenu.REDID);
+        StringBuilder retMessage = new StringBuilder();
+
         //加锁
         lock.lock();
         try {
