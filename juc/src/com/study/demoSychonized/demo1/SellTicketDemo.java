@@ -18,8 +18,6 @@ public class SellTicketDemo {
         Thread thread = new Thread(ticket::sell, "B");
         thread.start();
 
-        new Thread(() -> {
-            ticket.sell();
-        }, "C").start();
+        new Thread(ticket::sell, "C").start();
     }
 }

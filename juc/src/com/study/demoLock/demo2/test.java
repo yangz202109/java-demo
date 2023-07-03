@@ -17,6 +17,7 @@ public class test {
                 }
             }
         },"AA").start();
+
         new Thread(() ->{
             for (int i = 0; i <10 ; i++) {
                 try {
@@ -26,6 +27,5 @@ public class test {
                 }
             }
         },"BB").start();
-
     }
 }

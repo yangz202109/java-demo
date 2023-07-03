@@ -8,12 +8,12 @@ package com.study.demoSychonized.demo1;
  */
 
 public class Ticket {
-    private int number=30;
+    private int number = 30;
 
-    public synchronized void sell(){
-        if (number>0){
-            System.out.print("线程名："+Thread.currentThread().getName());
-            System.out.println(" 卖第："+(number--) +"还剩下 ："+number);
+    public synchronized void sell() {
+        if (number > 0) {
+            System.out.print("线程名：" + Thread.currentThread().getName());
+            System.out.println(" 卖第：" + (number--) + "还剩下 ：" + number);
         }
     }
 }

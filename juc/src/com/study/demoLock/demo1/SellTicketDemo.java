@@ -1,6 +1,6 @@
 package com.study.demoLock.demo1;
 
-import com.study.demoSychonized.demo1.Ticket;
+import com.study.demoLock.demo1.Ticket;
 
 /**
  * @author yangz
@@ -8,17 +8,17 @@ import com.study.demoSychonized.demo1.Ticket;
  */
 public class SellTicketDemo {
     public static void main(String[] args) {
-        Ticket ticket=new Ticket();
+        Ticket ticket = new Ticket();
 
-         new Thread( ()-> {
-             for (int i=1 ;i<=30;i++) {
-                 ticket.sell();
-             }
-        },"A").start();
+        new Thread(() -> {
+            for (int i = 1; i <= 30; i++) {
+                ticket.sell();
+            }
+        }, "A").start();
 
-        Thread thread = new Thread(ticket::sell,"B");
+        Thread thread = new Thread(ticket::sell, "B");
         thread.start();
 
-        new Thread(ticket::sell,"C").start();
+        new Thread(ticket::sell, "C").start();
     }
 }

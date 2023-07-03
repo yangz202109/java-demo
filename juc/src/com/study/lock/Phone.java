@@ -10,27 +10,25 @@ public class Phone {
     //synchronized 锁的对象 是方法的调用者 phone
     //两方法用的是同一把锁，谁先拿到谁执行
 
-    public synchronized void sendmsg() {
+    public synchronized void sendMsg() {
         try {
             TimeUnit.SECONDS.sleep(4);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println(Thread.currentThread().getName() + " 发短信");
+        System.out.println(Thread.currentThread().getName() + "-在发短信");
     }
 
     public synchronized void call() {
-        System.out.println(Thread.currentThread().getName() + " 打电话");
+        System.out.println(Thread.currentThread().getName() + "-在打电话");
     }
 }
 
-
-class testPhone{
+class testPhone {
     public static void main(String[] args) {
-         Phone  phone= new Phone();
+        Phone phone = new Phone();
 
-
-        new Thread(phone::sendmsg,"A").start();
+        new Thread(phone::sendMsg, "A").start();
 
         try {
             TimeUnit.SECONDS.sleep(1);
@@ -38,7 +36,7 @@ class testPhone{
             e.printStackTrace();
         }
 
-        new Thread(phone::call,"B").start();
+        new Thread(phone::call, "B").start();
 
     }
 }

@@ -14,19 +14,19 @@ public class Share {
      * 初始值
      */
     private int sum = 0;
-    private Lock lock=new ReentrantLock();
-    private Condition condition=lock.newCondition();
+    private final Lock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
 
     /**
      * 递增
      * 加1方法 当sum等于0时执行
      */
-    public  void incr() throws InterruptedException {
+    public void incr() throws InterruptedException {
         //加锁
         lock.lock();
         try {
             while (sum != 0) {
-               condition.await();//等待
+                condition.await();//等待
             }
             sum++;
             System.out.println(Thread.currentThread().getName() + " : " + sum);
@@ -41,7 +41,7 @@ public class Share {
     }
 
     //减1方法 当sum不等于0时执行
-    public  void decr() throws InterruptedException {
+    public void decr() throws InterruptedException {
         //加锁
         lock.lock();
         try {

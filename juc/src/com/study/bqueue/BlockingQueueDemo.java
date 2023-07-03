@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
  * 集合队列
  */
 public class BlockingQueueDemo {
+
     public static void main(String[] args) throws InterruptedException {
         BlockingQueueDemo.test4();
     }
@@ -63,10 +64,11 @@ public class BlockingQueueDemo {
         //当队列为空,移除元素时,返回false
         System.out.println(blockingQueue.poll());
     }
+
     /*等待阻塞*/
     public static void test3() throws InterruptedException {
         //创建队列,并设置队列大小
-        ArrayBlockingQueue blockingQueue = new ArrayBlockingQueue<>(3);
+        ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(3);
 
         //.put 添加元素 添加超过队列大小的元素时,会一直阻塞等待
         blockingQueue.put("a");
@@ -86,7 +88,7 @@ public class BlockingQueueDemo {
     /*等待阻塞的时间*/
     public static void test4() throws InterruptedException {
         //创建队列,并设置队列大小
-        ArrayBlockingQueue blockingQueue = new ArrayBlockingQueue<>(3);
+        ArrayBlockingQueue<String> blockingQueue = new ArrayBlockingQueue<>(3);
 
         blockingQueue.offer("a");
         blockingQueue.offer("b");

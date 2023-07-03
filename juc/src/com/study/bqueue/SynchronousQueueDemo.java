@@ -15,7 +15,7 @@ public class SynchronousQueueDemo {
     //创建同步队列
         SynchronousQueue<String> queue = new SynchronousQueue<>();
 
-        //创建线程
+        //创建AA线程添加数据
         new Thread( ()->{
             try {
                 System.out.println(Thread.currentThread().getName()+" 添加 a1");
@@ -29,6 +29,7 @@ public class SynchronousQueueDemo {
             }
         },"AA").start();
 
+        //创建BB线程取出数据
         new Thread( ()->{
             try {
                 TimeUnit.SECONDS.sleep(3);
@@ -44,8 +45,6 @@ public class SynchronousQueueDemo {
                 e.printStackTrace();
             }
         },"BB").start();
-
-
     }
 }
 

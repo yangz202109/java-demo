@@ -4,7 +4,7 @@ package com.study.demoSychonized.demo2;
  * @author yangz
  * @date 2021/12/15 - 14:18
  * 资源类
- *锁对象.wait(); 导致当前线程等,，直到另一个线程调用该对象的 notify()方法或 notifyAll()方法。
+ * 锁对象.wait(); 导致当前线程等,，直到另一个线程调用该对象的 notify()方法或 notifyAll()方法。
  * notify() 唤醒正在等待对象监视器的单个线程。
  * notifyAll() 唤醒正在等待对象监视器的所有线程。
  */
@@ -36,7 +36,6 @@ public class Share {
         //通知其他线程,本线程已经释放锁
         this.notifyAll();
     }
-
 }
 
 

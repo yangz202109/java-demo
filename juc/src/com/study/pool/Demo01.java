@@ -15,12 +15,12 @@ public class Demo01 {
         //ExecutorService threadPool = Executors.newFixedThreadPool(5);//创建一个固定的线程池的大小 1池多线程
         ExecutorService threadPool = Executors.newCachedThreadPool();//可伸缩的线程池
 
-    /*
-    * 线程并不会立刻创建
-    * 在执行.execute(...) 时就会创建线程
-    * */
+        /*
+         * 线程并不会立刻创建
+         * 在执行.execute(...) 时就会创建线程
+         * */
         try {
-            for (int i =1; i <=10 ; i++) {
+            for (int i = 1; i <= 10; i++) {
                 //通过线程池创建线程
                 threadPool.execute(() -> System.out.println(Thread.currentThread().getName() + "进入"));
             }

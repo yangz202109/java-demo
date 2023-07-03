@@ -11,24 +11,24 @@ import java.util.concurrent.locks.ReentrantLock;
  * 设置执行顺序 one->tow->three
  */
 public class Order {
-    private int num =1;
+    private int num = 1;
 
-    private Lock lock=new ReentrantLock();
+    private final Lock lock = new ReentrantLock();
 
-    private Condition c1=lock.newCondition();
-    private Condition c2=lock.newCondition();
-    private Condition c3=lock.newCondition();
+    private Condition c1 = lock.newCondition();
+    private Condition c2 = lock.newCondition();
+    private Condition c3 = lock.newCondition();
 
-    public void one(){
+    public void one() {
         lock.lock();
 
         try {
 
-            while (num !=1){
+            while (num != 1) {
                 c1.await();
             }
             //干活
-                System.out.println(Thread.currentThread().getName()+" :执行 one ");
+            System.out.println(Thread.currentThread().getName() + " :执行 one ");
 
             num++;
             c2.signal();  //通知
@@ -39,15 +39,16 @@ public class Order {
             lock.unlock();
         }
     }
-    public void two(){
+
+    public void two() {
         lock.lock();
 
         try {
-            while (num !=2){
+            while (num != 2) {
                 c2.await();
             }
-              //干活
-                System.out.println(Thread.currentThread().getName()+" :执行 two ");
+            //干活
+            System.out.println(Thread.currentThread().getName() + " :执行 two ");
 
             num++;
             c3.signal();  //通知唤醒指定 three
@@ -58,17 +59,18 @@ public class Order {
             lock.unlock();
         }
     }
-    public void three(){
+
+    public void three() {
         lock.lock();
 
         try {
-            while (num !=3){
+            while (num != 3) {
                 c3.await();
             }
-        //干活
-         System.out.println(Thread.currentThread().getName()+" :执行 three");
+            //干活
+            System.out.println(Thread.currentThread().getName() + " :执行 three");
 
-            num =1;
+            num = 1;
             c1.signal();  //通知
 
         } catch (InterruptedException e) {
