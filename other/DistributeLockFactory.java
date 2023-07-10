@@ -12,6 +12,7 @@ import java.util.concurrent.locks.Lock;
  */
 @Component
 public class DistributeLockFactory {
+
     private final RedisTemplate<String, Object> redisTemplate;
     private final String threadUUId;
 

@@ -2,11 +2,12 @@ package com.heardlearn.system.sysconfiguration.service;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
+import org.redisson.Redisson;
+import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
-
 import java.util.Collections;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +28,14 @@ public class InventoryService {
     private RedisTemplate<String, Object> redisTemplate;
     @Autowired
     private DistributeLockFactory distributeLockFactory;
+    @Autowired
+    private Redisson redisson;
+    @Autowired
+    RedissonClient redissonClient1;
+    @Autowired
+    RedissonClient redissonClient2;
+    @Autowired
+    RedissonClient redissonClient3;
 
     private Lock lock;
 
@@ -300,7 +309,7 @@ public class InventoryService {
             }
 
             //重入 有问题!!
-           // testReEntry();
+            // testReEntry();
         } finally {
             //解锁
             lock.unlock();
@@ -347,7 +356,8 @@ public class InventoryService {
 
     /**
      * 7.0 自动续期(在任务执行时间较长的情况下,可以在获取锁后定期续约,即重新设置锁的过期时间,以防止锁过期而被其他线程获取)
-     *  在自定义上锁上实现
+     * 问题:多台redis(主从,哨兵或集群),在故障转移时可能会出现master存入的数据(锁)还未同步给slave时就宕机了,
+     * 该数据(锁)就丢失了,这是redis的问题,因为redis是基于AP(可用性和分区容错性)架构
      */
     public String sale7() {
         //使用工厂模式来获取指定分布式锁
@@ -375,7 +385,84 @@ public class InventoryService {
             lock.unlock();
         }
         return retMessage.toString();
+    }
 
+    /**
+     * 8.0 引入Redisson对应的官网推荐RedLock实现类 单机版
+     * 问题: 没有解决redis存在数据丢失问题
+     */
+    public String sale8() {
+        String key = "redisLock";
+        //获取RedissonLock
+        RLock redissonLock = redisson.getLock(key);
+        StringBuilder retMessage = new StringBuilder();
+
+        /**
+          加锁
+          成功之后,如果不指定超时时间时,会开启watchdog后台线程,不断的续约加锁时间
+          默认是会设置30s的过期时间,watchdog隔10s(ttl/3)就执行续约
+         */
+        redissonLock.lock();
+        try {
+            //1.获取库存信息
+            String result = (String) redisTemplate.opsForValue().get("inventory");
+            //2.判断库存是否足够
+            Integer inventoryNum = result == null ? 0 : Integer.parseInt(result);
+            //3.扣减库存,每次减1
+            if (inventoryNum > 0) {
+                redisTemplate.opsForValue().set("inventory", String.valueOf(--inventoryNum));
+                retMessage.append("成功卖出一商品,库存剩余: ").append(inventoryNum);
+            } else {
+                retMessage.append("该商品已经售完");
+            }
+            //重入
+            testReEntry();
+        } finally {
+            //解锁,判断是锁定并且是自己持有才能删除
+            if (redissonLock.isLocked() && redissonLock.isHeldByCurrentThread()) {
+                redissonLock.unlock();
+            }
+        }
+        return retMessage.toString();
+    }
+
+    /**
+     * 9.0 引入Redisson对应的官网推荐RedLock实现类 多机版
+     */
+    public String sale9() {
+        String cache_key_redlock = "redlock"
+        RLock lock1 = redissonClient1.getLock(cache_key_redlock);
+        RLock lock2 = redissonClient2.getLock(cache_key_redlock);
+        RLock lock3 = redissonClient3.getLock(cache_key_redlock);
+
+        RedissonMultiLock redLock = new RedissonMultiLock(lock1, lock2, lock3);
+
+        StringBuilder retMessage = new StringBuilder();
+
+        /**
+         加锁
+         成功之后,如果不指定超时时间时,会开启watchdog后台线程,不断的续约加锁时间
+         默认是会设置30s的过期时间,watchdog隔10s(ttl/3)就执行续约
+         */
+        redLock.lock();
+        try {
+            //1.获取库存信息
+            String result = (String) redisTemplate.opsForValue().get("inventory");
+            //2.判断库存是否足够
+            Integer inventoryNum = result == null ? 0 : Integer.parseInt(result);
+            //3.扣减库存,每次减1
+            if (inventoryNum > 0) {
+                redisTemplate.opsForValue().set("inventory", String.valueOf(--inventoryNum));
+                retMessage.append("成功卖出一商品,库存剩余: ").append(inventoryNum);
+            } else {
+                retMessage.append("该商品已经售完");
+            }
+            //重入
+            testReEntry();
+        } finally {
+          redLock.unLock();
+        }
+        return retMessage.toString();
     }
 
     /**

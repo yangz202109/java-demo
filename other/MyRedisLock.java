@@ -62,8 +62,8 @@ public class MyRedisLock implements Lock {
     }
 
     /**
-     * 1.当任务执行完成后，计数器减1。
-     * 2.当计数器减为0时，表示该线程已完全释放锁，可以删除锁的键。
+     * 1.当任务执行完成后，计数器减1.
+     * 2.当计数器减为0时，表示该线程已完全释放锁，可以删除锁的键.
      */
     @Override
     public void unlock() {
